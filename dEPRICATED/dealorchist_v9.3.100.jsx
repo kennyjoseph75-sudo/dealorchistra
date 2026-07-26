@@ -1,0 +1,92 @@
+const VERSION = "v9.3.100";
+const { useState } = React;
+
+const initialColumns = [
+  {
+    id: "leads",
+    title: "Leads",
+    accent: "#7c93ff",
+    items: [
+      { id: "d1", name: "Northwind Metals", buyer: "Alicia", amount: "$2.4M", heat: "🔥", stage: "Open" },
+      { id: "d2", name: "Harbor Logistics", buyer: "Jon", amount: "$810k", heat: "🔥", stage: "New" }
+    ]
+  },
+  {
+    id: "potential",
+    title: "Potential",
+    accent: "#ffb84d",
+    items: [
+      { id: "d3", name: "Cedar Capital", buyer: "Mina", amount: "$1.2M", heat: "🔥", stage: "Review" }
+    ]
+  },
+  {
+    id: "active",
+    title: "Active",
+    accent: "#56c17d",
+    items: [
+      { id: "d4", name: "Summit Trading", buyer: "Kai", amount: "$3.1M", heat: "🔥", stage: "Live" }
+    ]
+  }
+];
+
+function App() {
+  const [columns, setColumns] = useState(initialColumns);
+  const [selectedId, setSelectedId] = useState(null);
+
+  const toggleSelection = (id) => {
+    setSelectedId((current) => (current === id ? null : id));
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #07111f 0%, #17253d 100%)", color: "#f7f9fc", fontFamily: "'Plus Jakarta Sans', sans-serif", padding: 24 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div>
+          <div style={{ fontSize: 24, fontWeight: 600 }}>DealOrchestra</div>
+          <div style={{ fontSize: 13, color: "#9fb0cc", marginTop: 4 }}>Starter board initialized for the next build.</div>
+        </div>
+        <div style={{ fontSize: 13, color: "#9fb0cc" }}>{VERSION}</div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(220px, 1fr))", gap: 16 }}>
+        {columns.map((column) => (
+          <div key={column.id} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: 14, minHeight: 320 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <div style={{ fontSize: 16, fontWeight: 600 }}>{column.title}</div>
+              <span title="Column status" style={{ fontSize: 12, color: column.accent }}>{column.items.length} cards</span>
+            </div>
+
+            {column.items.map((item) => {
+              const isSelected = selectedId === item.id;
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => toggleSelection(item.id)}
+                  title="Select this deal"
+                  style={{
+                    background: isSelected ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.08)",
+                    border: isSelected ? "1px solid rgba(255,255,255,0.28)" : "1px solid rgba(255,255,255,0.12)",
+                    borderRadius: 16,
+                    padding: 12,
+                    marginBottom: 10,
+                    cursor: "pointer",
+                    transition: "all 0.2s ease"
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <div style={{ fontWeight: 600 }}>{item.name}</div>
+                    <span title="Heat signal" style={{ fontSize: 14 }}>{item.heat}</span>
+                  </div>
+                  <div style={{ fontSize: 13, color: "#9fb0cc", marginBottom: 6 }}>Buyer • {item.buyer}</div>
+                  <div style={{ fontSize: 13, color: "#f7f9fc", marginBottom: 6 }}>Value • {item.amount}</div>
+                  <div style={{ fontSize: 13, color: "#7c93ff" }}>Stage • {item.stage}</div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);

@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DealOrchestra — Card Reference v1</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+/*
+  DEALORCHESTRA — DO_CARD_REFERENCE_v1.html
+  Canonical card design. Agreed July 2026.
+  DO NOT reconstruct from descriptions. Render this file. Build from this CSS.
+
+  Contains:
+  - Board canvas (#f8f7f4)
+  - Deal card: Lead (honey), Active (mint), Overdue condition (rose blush on hover)
+  - Contact card variant (avatar up top, blue-lavender)
+  - Traffic light urgency dots (three fixed positions, one active at a time)
+  - Front face: glass gradient, hover blush, icon band, expand button
+  - Back face: inverted gradient, coloured header, workspace panels, icon band
+  - Working flip animation + tab switching on back face
+  - Floating pill launcher
+*/
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── BOARD CANVAS ── */
+body {
+  background: #f8f7f4;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  padding: 36px 28px 100px;
+  min-height: 100vh;
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 400;
+  color: #1c1a10;
+  margin-bottom: 3px;
+  letter-spacing: -0.3px;
+}
+.page-title span { color: #c45c00; }
+.page-sub {
+  font-size: 10px;
+  color: #9a8858;
+  margin-bottom: 6px;
+}
+.page-warn {
+  font-size: 10px;
+  color: #c45c00;
+  font-weight: 600;
+  margin-bottom: 32px;
+}
+
+.sec {
+  font-size: 10px;
+  font-weight: 600;
+  color: #9a8858;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(155,140,80,0.15);
+}
+
+.cards-row {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 48px;
+  align-items: flex-start;
+}
+
+.card-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-lbl {
+  font-size: 9px;
+  font-weight: 500;
+  color: #aaa;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   FLIP CONTAINER
+   Width: 200px. Aspect ratio 5:7.6.
+   ============================================================ */
+.flip-wrap {
+  width: 200px;
+  aspect-ratio: 5 / 7.6;
+  perspective: 1400px;
+  cursor: pointer;
+  position: relative;
+}
+
+.flip-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.flip-inner.flipped { transform: rotateY(180deg); }
+.flip-wrap:hover .flip-inner:not(.flipped) { transform: translateY(-7px); }
+
+.face {
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================
+   TRAFFIC LIGHT URGENCY DOTS
+   Three fixed positions, top-left corner. ONE dot active at a time.
+   LEFT = overdue (red). MIDDLE = today (amber). RIGHT = upcoming (green).
+   All grey = nothing pending.
+   Card name must have padding-left: 34px to clear the dots.
+   ============================================================ */
+.tl {
+  position: absolute;
+  top: 10px;
+  left: 11px;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  z-index: 5;
+}
+.tld {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(80,60,20,0.13);
+  flex-shrink: 0;
+}
+.tld.overdue  { background: #c0392b; box-shadow: 0 0 6px rgba(192,57,43,0.6); }
+.tld.today    { background: #b87a18; box-shadow: 0 0 6px rgba(184,122,24,0.5); }
+.tld.upcoming { background: #2e7d52; box-shadow: 0 0 6px rgba(46,125,82,0.5); }
+
+/* ============================================================
+   FRONT FACE — Glass gradient surface
+   Near-transparent at top, colour pools at base.
+   Inset top highlight = glass physical thickness.
+   ============================================================ */
+.front {
+  border: 1px solid rgba(255,255,255,0.62);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255,255,255,0.9),
+    inset 0 -1px 0 rgba(255,255,255,0.15),
+    0 4px 24px rgba(160,130,50,0.13),
+    0 1px 4px rgba(0,0,0,0.05);
+}
+
+/* LEAD / WARM — honey amber pools at base */
+.lead .front {
+  background: linear-gradient(175deg,
+    rgba(255,255,255,0.18)  0%,
+    rgba(255,255,255,0.32) 18%,
+    rgba(255,252,240,0.55) 38%,
+    rgba(252,240,195,0.78) 62%,
+    rgba(245,224,140,0.92) 82%,
+    rgba(236,208,100,0.97) 100%);
+}
+
+/* ACTIVE — mint pools at base */
+.active .front {
+  background: linear-gradient(175deg,
+    rgba(255,255,255,0.18)  0%,
+    rgba(255,255,255,0.32) 18%,
+    rgba(242,255,248,0.55) 38%,
+    rgba(210,242,224,0.78) 62%,
+    rgba(158,228,192,0.92) 82%,
+    rgba(118,210,162,0.97) 100%);
+}
+
+/* CONTACT — blue-lavender pools at base */
+.contact .front {
+  background: linear-gradient(175deg,
+    rgba(255,255,255,0.18)  0%,
+    rgba(255,255,255,0.32) 18%,
+    rgba(242,245,255,0.55) 38%,
+    rgba(205,215,252,0.78) 62%,
+    rgba(170,188,248,0.92) 82%,
+    rgba(138,162,242,0.97) 100%);
+}
+
+/* HOVER BLUSH — card blushes, intensifies, lifts */
+.lead:hover .front {
+  background: linear-gradient(175deg,
+    rgba(255,248,235,0.32)  0%,
+    rgba(255,245,220,0.52) 22%,
+    rgba(253,238,190,0.74) 52%,
+    rgba(247,224,148,0.90) 78%,
+    rgba(240,210,110,0.97) 100%);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255,255,255,0.9),
+    0 18px 42px rgba(196,92,0,0.16),
+    0 4px 12px rgba(0,0,0,0.08);
+}
+.active:hover .front {
+  background: linear-gradient(175deg,
+    rgba(240,255,247,0.32)  0%,
+    rgba(225,248,235,0.52) 22%,
+    rgba(198,238,215,0.74) 52%,
+    rgba(170,228,196,0.90) 78%,
+    rgba(140,214,172,0.97) 100%);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255,255,255,0.9),
+    0 18px 42px rgba(46,125,82,0.16),
+    0 4px 12px rgba(0,0,0,0.07);
+}
+.contact:hover .front {
+  box-shadow:
+    inset 0 1.5px 0 rgba(255,255,255,0.9),
+    0 18px 42px rgba(80,100,200,0.15),
+    0 4px 12px rgba(0,0,0,0.07);
+}
+
+/* HEAT EMOJI — top right, always visible
+   Left corner = traffic light dots (urgency)
+   Right corner = heat / opportunity temperature
+   These two signals are always in their fixed corners. */
+.heat {
+  position: absolute;
+  top: 10px; right: 11px;
+  font-size: 12px;
+  letter-spacing: -1px;
+  opacity: 0.85;
+  z-index: 4;
+  line-height: 1;
+}
+
+/* EXPAND BUTTON — sits below heat emoji on hover, top right */
+.xbtn {
+  position: absolute;
+  top: 28px; right: 11px;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  border: 1px solid rgba(255,255,255,0.55);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(30,20,5,0.38);
+  font-size: 12px; z-index: 10;
+  opacity: 0; transform: scale(0.75);
+  transition: opacity 0.18s ease, transform 0.18s cubic-bezier(0.34,1.2,0.64,1), background 0.14s, color 0.14s;
+}
+.flip-wrap:hover .xbtn { opacity: 1; transform: scale(1); }
+.xbtn:hover { background: rgba(30,20,5,0.75); color: #fff; border-color: transparent; }
+
+/* FRONT CONTENT
+   Top padding clears the traffic light dots (10px top + 8px dot + gap = ~26px).
+   Name has padding-left:34px to clear dots horizontally. */
+.fcontent {
+  flex: 1;
+  padding: 28px 14px 8px 13px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* heat-row removed — heat emoji is now position:absolute top-right */
+
+/* DEAL NAME — weight 400, never bold */
+.dname {
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(20,14,4,0.88);
+  line-height: 1.25;
+  letter-spacing: -0.15px;
+  margin-bottom: 6px;
+  padding-left: 34px; /* clears traffic light dots */
+  padding-right: 3px;
+}
+
+/* SELLER LINE */
+.seller { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+.sdot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.sname { font-size: 10.5px; font-weight: 400; color: rgba(40,28,8,0.52); }
+
+/* FACTS LINE — weight 300, dot-separated, NO chips */
+.facts { font-size: 9.5px; font-weight: 300; color: rgba(40,28,8,0.38); line-height: 1.55; letter-spacing: 0.05px; }
+.sep { margin: 0 4px; opacity: 0.35; }
+.fsp { flex: 1; }
+
+/* ICON BAND — FRONT
+   NO container box. NO separator line.
+   Icons float directly in the deep colour zone at card base. */
+.ficons { padding: 0 16px 13px; display: flex; align-items: center; justify-content: space-between; }
+
+.ib {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; cursor: pointer;
+  background: rgba(255,255,255,0.22);
+  border: 1px solid rgba(255,255,255,0.38);
+  color: rgba(255,255,255,0.62); font-size: 14px;
+  transition: transform 0.18s cubic-bezier(0.34,1.3,0.64,1), background 0.14s, color 0.14s;
+}
+.ib:hover { transform: translateY(-5px) scale(1.08); background: rgba(255,255,255,0.52); color: rgba(20,14,4,0.8); }
+.ib.on { background: rgba(255,255,255,0.42); color: rgba(20,14,4,0.7); transform: translateY(-2px); border-color: rgba(255,255,255,0.55); }
+.ib.on::after {
+  content: ''; position: absolute; bottom: -4px; left: 50%;
+  transform: translateX(-50%); width: 3px; height: 3px;
+  border-radius: 50%; background: rgba(255,255,255,0.75);
+}
+.tip {
+  position: absolute; bottom: 40px; left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: rgba(28,26,16,0.92); color: rgba(255,255,255,0.9);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 9px; font-weight: 500; padding: 3px 7px; border-radius: 5px;
+  white-space: nowrap; opacity: 0; pointer-events: none;
+  transition: opacity 0.13s ease, transform 0.13s ease; z-index: 20;
+}
+.ib:hover .tip { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* CONTACT AVATAR */
+.av {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(255,255,255,0.42); border: 1.5px solid rgba(255,255,255,0.7);
+  color: rgba(60,70,180,0.75); font-size: 14px; font-weight: 500;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 9px;
+}
+.role { font-size: 9px; font-weight: 300; color: rgba(40,30,80,0.5); margin-top: 2px; }
+
+/* ============================================================
+   BACK FACE — Inverted gradient
+   Same card turned over. Colour at TOP, dissipates downward.
+   NO black header. Colour carries through from front.
+   ============================================================ */
+.back { transform: rotateY(180deg); border: 1px solid rgba(255,255,255,0.55); }
+
+.lead .back {
+  background: linear-gradient(175deg,
+    rgba(210,168,60,0.95)  0%, rgba(232,200,110,0.88) 18%,
+    rgba(248,232,168,0.72) 38%, rgba(254,248,225,0.55) 58%,
+    rgba(255,255,255,0.28) 80%, rgba(255,255,255,0.12) 100%);
+  box-shadow: inset 0 -1.5px 0 rgba(255,255,255,0.7), 0 4px 24px rgba(160,130,50,0.13);
+}
+.active .back {
+  background: linear-gradient(175deg,
+    rgba(60,180,120,0.95)  0%, rgba(100,210,160,0.88) 18%,
+    rgba(168,238,205,0.72) 38%, rgba(225,252,238,0.55) 58%,
+    rgba(255,255,255,0.28) 80%, rgba(255,255,255,0.12) 100%);
+  box-shadow: inset 0 -1.5px 0 rgba(255,255,255,0.7), 0 4px 24px rgba(46,125,82,0.1);
+}
+.contact .back {
+  background: linear-gradient(175deg,
+    rgba(80,100,200,0.92)  0%, rgba(130,148,230,0.85) 18%,
+    rgba(185,198,248,0.70) 38%, rgba(228,232,254,0.52) 58%,
+    rgba(255,255,255,0.28) 80%, rgba(255,255,255,0.12) 100%);
+  box-shadow: inset 0 -1.5px 0 rgba(255,255,255,0.7), 0 4px 24px rgba(80,100,200,0.1);
+}
+
+/* BACK HEADER — coloured zone, NOT black */
+.bhdr { padding: 14px 13px 10px; flex-shrink: 0; }
+.bhdr-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.bname { font-size: 13px; font-weight: 400; color: rgba(20,12,0,0.82); line-height: 1.22; letter-spacing: -0.15px; flex: 1; }
+.bclose {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.45);
+  color: rgba(20,12,0,0.45); cursor: pointer; font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: background 0.13s, color 0.13s; font-family: inherit;
+}
+.bclose:hover { background: rgba(20,12,0,0.15); color: rgba(20,12,0,0.8); }
+.bfacts { font-size: 9px; font-weight: 300; color: rgba(20,12,0,0.42); letter-spacing: 0.05px; margin-bottom: 5px; }
+.bstat { display: flex; align-items: center; gap: 8px; }
+.bsi { display: flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 500; }
+.bsi.ov { color: rgba(180,55,38,0.85); }
+.bsi.td { color: rgba(150,95,10,0.85); }
+.bsi::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+
+/* Gradient divider — NO hard line */
+.bdiv {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(180,140,40,0) 0%, rgba(180,140,40,0.18) 30%, rgba(180,140,40,0.18) 70%, rgba(180,140,40,0) 100%);
+  margin: 0 12px; flex-shrink: 0;
+}
+
+/* BACK PANELS */
+.bbody { flex: 1; overflow: hidden; position: relative; }
+.bpanel { position: absolute; inset: 0; padding: 11px 12px 7px; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; overflow-y: auto; }
+.bpanel::-webkit-scrollbar { width: 2px; }
+.bpanel::-webkit-scrollbar-thumb { background: rgba(155,140,80,0.15); }
+.bpanel.on { opacity: 1; pointer-events: auto; }
+.psec { font-size: 8px; font-weight: 600; color: rgba(80,60,10,0.45); letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 7px; }
+
+.srow2 { display: flex; align-items: center; gap: 7px; padding: 7px 9px; background: rgba(255,255,255,0.45); border: 1px solid rgba(180,150,60,0.12); border-radius: 9px; margin-bottom: 4px; }
+.sd2 { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.sn2 { font-size: 10.5px; font-weight: 400; color: rgba(20,14,4,0.82); flex: 1; }
+.stag { font-size: 8px; font-weight: 500; padding: 2px 6px; border-radius: 8px; }
+.stag.p { background: rgba(46,125,82,0.12); color: #2e7d52; }
+.stag.c { background: rgba(184,122,24,0.12); color: #b87a18; }
+
+.addrow { display: flex; align-items: center; gap: 5px; padding: 6px 9px; border: 1px dashed rgba(180,150,60,0.22); border-radius: 9px; cursor: pointer; color: rgba(80,60,10,0.4); font-size: 10px; transition: border-color 0.13s, color 0.13s; margin-top: 2px; }
+.addrow:hover { border-color: rgba(196,92,0,0.35); color: #c45c00; }
+.bnote { font-size: 9px; font-weight: 300; color: rgba(80,60,10,0.45); font-style: italic; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(180,150,60,0.1); line-height: 1.5; }
+
+.aitem { display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(180,150,60,0.08); }
+.aitem:last-child { border-bottom: none; }
+.adot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.atext { font-size: 10px; font-weight: 300; color: rgba(20,14,4,0.75); flex: 1; line-height: 1.4; }
+.atime { font-size: 9px; color: rgba(80,60,10,0.4); white-space: nowrap; }
+
+.trow { display: flex; align-items: flex-start; gap: 7px; padding: 6px 0; border-bottom: 1px solid rgba(180,150,60,0.08); }
+.trow:last-child { border-bottom: none; }
+.tcheck { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid rgba(180,150,60,0.28); flex-shrink: 0; margin-top: 1px; }
+.tcheck.ov { border-color: rgba(192,57,43,0.55); }
+.tcheck.td { border-color: rgba(184,122,24,0.55); }
+.ttext { font-size: 10px; font-weight: 300; color: rgba(20,14,4,0.75); flex: 1; line-height: 1.4; }
+.tdue { font-size: 9px; font-weight: 500; white-space: nowrap; }
+.tdue.ov { color: rgba(192,57,43,0.85); }
+.tdue.td { color: rgba(184,122,24,0.85); }
+.tdue.up { color: rgba(80,60,10,0.4); font-weight: 300; }
+
+.drow { display: flex; align-items: center; gap: 7px; padding: 6px 8px; background: rgba(255,255,255,0.42); border: 1px solid rgba(180,150,60,0.12); border-radius: 8px; margin-bottom: 4px; cursor: pointer; }
+.dname2 { font-size: 10px; font-weight: 400; color: rgba(20,14,4,0.75); flex: 1; }
+.ddate { font-size: 9px; color: rgba(80,60,10,0.4); }
+
+/* ICON BAND — BACK FACE */
+.bicons { padding: 7px 16px 12px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.bib { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; background: rgba(255,255,255,0.32); border: 1px solid rgba(180,150,60,0.2); color: rgba(80,60,10,0.35); font-size: 14px; transition: transform 0.18s cubic-bezier(0.34,1.3,0.64,1), background 0.14s, color 0.14s; }
+.bib:hover { transform: translateY(-4px) scale(1.08); background: rgba(255,255,255,0.6); color: rgba(180,100,10,0.85); border-color: rgba(196,92,0,0.3); }
+.bib.on { background: rgba(255,255,255,0.5); color: rgba(180,100,10,0.82); border-color: rgba(196,92,0,0.28); transform: translateY(-2px); }
+.bib.on::after { content: ''; position: absolute; bottom: -3px; left: 50%; transform: translateX(-50%); width: 3px; height: 3px; border-radius: 50%; background: #c45c00; }
+.bib .tip { bottom: 40px; }
+
+/* ============================================================
+   FLOATING PILL LAUNCHER
+   Fixed bottom-right. Elongated dark pill. User initials.
+   ============================================================ */
+.pill-wrap { position: fixed; bottom: 20px; right: 20px; z-index: 100; display: flex; flex-direction: column; align-items: flex-end; gap: 9px; }
+.modes { display: flex; flex-direction: column; align-items: flex-end; gap: 7px; opacity: 0; transform: translateY(8px); pointer-events: none; transition: opacity 0.2s ease, transform 0.22s cubic-bezier(0.34,1.1,0.64,1); }
+.modes.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.mitem { display: flex; align-items: center; gap: 7px; cursor: pointer; }
+.mlbl { font-size: 11px; font-weight: 700; color: #1c1a10; background: rgba(255,255,255,0.92); border: 1px solid rgba(175,158,100,0.2); border-radius: 6px; padding: 4px 9px; opacity: 0; transform: translateX(4px); transition: opacity 0.14s, transform 0.14s; white-space: nowrap; pointer-events: none; }
+.mitem:hover .mlbl { opacity: 1; transform: translateX(0); }
+.mcircle { width: 38px; height: 38px; border-radius: 50%; background: #1c1a10; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.65); font-size: 16px; transition: background 0.14s, transform 0.14s; }
+.mitem:hover .mcircle { background: #c45c00; color: #fff; transform: scale(1.06); }
+.pill { display: flex; align-items: center; background: #1c1a10; border-radius: 24px; cursor: pointer; height: 44px; padding: 0 13px 0 4px; border: 1.5px solid rgba(196,92,0,0.22); transition: background 0.15s, border-color 0.15s; }
+.pill:hover { background: #2a2618; border-color: rgba(196,92,0,0.44); }
+.pav { width: 35px; height: 35px; border-radius: 50%; background: #c45c00; color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ptxt { display: flex; flex-direction: column; padding: 0 9px 0 8px; gap: 1px; }
+.pname { font-size: 12px; font-weight: 700; color: #fff; letter-spacing: -0.1px; line-height: 1.1; }
+.phint { font-size: 9px; color: rgba(255,255,255,0.35); }
+.pchev { font-size: 11px; color: rgba(255,255,255,0.3); transition: transform 0.2s, color 0.14s; }
+.pill:hover .pchev { color: rgba(255,255,255,0.6); }
+.pill-wrap.open .pchev { transform: rotate(180deg); color: #c45c00; }
+</style>
+</head>
+<body>
+
+<p class="page-title">Deal<span>Orchestra</span> — Card Reference v1</p>
+<p class="page-sub">Canonical card design · Agreed July 2026</p>
+<p class="page-warn">DO NOT reconstruct from descriptions. Open this file. Build from this CSS.</p>
+
+<div class="sec">Deal cards — Lead, Active, Contact. Hover to blush. Click to flip. Tap back icons to switch sections.</div>
+
+<div class="cards-row">
+
+  <!-- ── LEAD CARD — overdue condition (left dot active) ── -->
+  <div class="card-col">
+    <div class="flip-wrap lead" onclick="flip(this)">
+      <div class="flip-inner">
+        <div class="face front">
+          <!-- Traffic light: left dot active = overdue -->
+          <div class="tl">
+            <div class="tld overdue"></div>
+            <div class="tld"></div>
+            <div class="tld"></div>
+          </div>
+          <div class="heat">🔥🔥🔥</div>
+          <button class="xbtn" onclick="event.stopPropagation();flip(this.closest('.flip-wrap'))"><i class="ti ti-arrows-maximize"></i></button>
+          <div class="fcontent">
+            <div class="dname">CHIWEMPALA Copper</div>
+            <div class="seller"><div class="sdot" style="background:rgba(46,125,82,0.65)"></div><div class="sname">KTI Industries · primary</div></div>
+            <div class="facts">Cash &amp; Carry<span class="sep">·</span>Copper<span class="sep">·</span>500 MT</div>
+            <div class="fsp"></div>
+          </div>
+          <div class="ficons">
+            <div class="ib on" onclick="event.stopPropagation()"><i class="ti ti-info-circle"></i><span class="tip">Info</span></div>
+            <div class="ib" onclick="event.stopPropagation()"><i class="ti ti-activity"></i><span class="tip">Activity</span></div>
+            <div class="ib" onclick="event.stopPropagation()"><i class="ti ti-check"></i><span class="tip">Tasks</span></div>
+            <div class="ib" onclick="event.stopPropagation()"><i class="ti ti-paperclip"></i><span class="tip">Docs</span></div>
+          </div>
+        </div>
+        <div class="face back">
+          <div class="bhdr">
+            <div class="bhdr-top"><div class="bname">CHIWEMPALA Copper</div><button class="bclose" onclick="event.stopPropagation();unflip(this)">×</button></div>
+            <div class="bfacts">Cash &amp; Carry<span class="sep">·</span>Copper<span class="sep">·</span>500 MT</div>
+            <div class="bstat"><div class="bsi ov">1 overdue</div></div>
+          </div>
+          <div class="bdiv"></div>
+          <div class="bbody">
+            <div class="bpanel on" data-p="info">
+              <div class="psec">Seller matching</div>
+              <div class="srow2"><div class="sd2" style="background:#2e7d52"></div><div class="sn2">KTI Industries</div><span class="stag p">Primary</span></div>
+              <div class="srow2"><div class="sd2" style="background:#b87a18"></div><div class="sn2">Flowtam Enterprises</div><span class="stag c">Candidate</span></div>
+              <div class="addrow"><i class="ti ti-plus" style="font-size:11px"></i>Match a seller</div>
+              <div class="bnote">Chase KTI on SGS documentation — overdue</div>
+            </div>
+            <div class="bpanel" data-p="activity">
+              <div class="psec">Activity</div>
+              <div class="aitem"><div class="adot" style="background:#2e7d52"></div><div class="atext">Call — KTI confirmed 500 MT for Q3</div><div class="atime">2d ago</div></div>
+              <div class="aitem"><div class="adot" style="background:#b87a18"></div><div class="atext">Email to Flowtam re mandate</div><div class="atime">4d ago</div></div>
+            </div>
+            <div class="bpanel" data-p="tasks">
+              <div class="psec">Tasks</div>
+              <div class="trow"><div class="tcheck ov"></div><div class="ttext">Chase KTI on SGS docs</div><div class="tdue ov">2d overdue</div></div>
+              <div class="trow"><div class="tcheck"></div><div class="ttext">Send buyer PB draft</div><div class="tdue up">In 3 days</div></div>
+            </div>
+            <div class="bpanel" data-p="docs">
+              <div class="psec">Documents</div>
+              <div class="drow"><i class="ti ti-file" style="font-size:13px;color:rgba(80,60,10,0.4)"></i><div class="dname2">KTI SGS Certificate</div><div class="ddate">Awaiting</div></div>
+            </div>
+          </div>
+          <div class="bicons">
+            <div class="bib on" data-t="info" onclick="event.stopPropagation();tab(this)"><i class="ti ti-info-circle"></i><span class="tip">Info</span></div>
+            <div class="bib" data-t="activity" onclick="event.stopPropagation();tab(this)"><i class="ti ti-activity"></i><span class="tip">Activity</span></div>
+            <div class="bib" data-t="tasks" onclick="event.stopPropagation();tab(this)"><i class="ti ti-check"></i><span class="tip">Tasks</span></div>
+            <div class="bib" data-t="docs" onclick="event.stopPropagation();tab(this)"><i class="ti ti-paperclip"></i><span class="tip">Docs</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-lbl">Lead · overdue · click to flip</div>
+  </div>
+
+  <!-- ── LEAD CARD — due today (middle dot active) ── -->
+  <div class="card-col">
+    <div class="flip-wrap lead" onclick="flip(this)">
+      <div class="flip-inner">
+        <div class="face front">
+          <div class="tl">
+            <div class="tld"></div>
+            <div class="tld today"></div>
+            <div class="tld"></div>
+          </div>
+          <div class="heat">🔥🔥</div>
+          <button class="xbtn" onclick="event.stopPropagation();flip(this.closest('.flip-wrap'))"><i class="ti ti-arrows-maximize"></i></button>
+          <div class="fcontent">
+            <div class="dname">Accra Gold CIF</div>
+            <div class="seller"><div class="sdot" style="background:rgba(46,125,82,0.65)"></div><div class="sname">KTI Industries</div></div>
+            <div class="facts">CIF<span class="sep">·</span>Gold Doré<span class="sep">·</span>Zurich</div>
+            <div class="fsp"></div>
+          </div>
+          <div class="ficons">
+            <div class="ib on" onclick="event.stopPropagation()"><i class="ti ti-info-circle"></i><span class="tip">Info</span></div>
+            <div class="ib" onclick="event.stopPropagation()"><i class="ti ti-activity"></i><span class="tip">Activity</span></div>
+            <div class="ib" onclick="event.stopPropagation()"><i class="ti ti-check"></i><span class="tip">Tasks</span></div>
+            <div class="ib" onclick="event.stopPropagation()"><i class="ti ti-paperclip"></i><span class="tip">Docs</span></div>
+          </div>
+        </div>
+        <div class="face back">
+          <div class="bhdr">
+            <div class="bhdr-top"><div class="bname">Accra Gold CIF</div><button class="bclose" onclick="event.stopPropagation();unflip(this)">×</button></div>
+            <div class="bfacts">CIF<span class="sep">·</span>Gold Doré<span class="sep">·</span>Zurich</div>
+            <div class="bstat"><div class="bsi td">1 due today</div></div>
+          </div>
+          <div class="bdiv"></div>
+          <div class="bbody">
+            <div class="bpanel on" data-p="info">
+              <div class="psec">Seller matching</div>
+              <div class="srow2"><div class="sd2" style="background:#2e7d52"></div><div class="sn2">KTI Industries</div><span class="stag p">Primary</span></div>
+              <div class="bnote">Follow up today · primary confirmed</div>
+            </div>
+            <div class="bpanel" data-p="activity"><div class="psec">Activity</div><div class="aitem"><div class="adot" style="background:#2e7d52"></div><div class="atext">KTI confirmed availability</div><div class="atime">1d ago</div></div></div>
+            <div class="bpanel" data-p="tasks"><div class="psec">Tasks</div><div class="trow"><div class="tcheck td"></div><div class="ttext">Follow up with KTI</div><div class="tdue td">Today</div></div></div>
+            <div class="bpanel" data-p="docs"><div class="psec">Documents</div><div class="bnote" style="margin:0;border:none;padding:0">No documents yet</div></div>
+          </div>
+          <div class="bicons">
+            <div class="bib on" data-t="info" onclick="event.stopPropagation();tab(this)"><i class="ti ti-info-circle"></i><span class="tip">Info</span></div>
+            <div class="bib" data-t="activity" onclick="event.stopPropagation();tab(this)"><i class="ti ti-activity"></i><span class="tip">Activity</span></div>
+            <div class="bib" data-t="tasks" onclick="event.stopPropagation();tab(this)"><i class="ti ti-check"></i><span class="tip">Tasks</span></div>
+            <div class="bib" data-t="docs" onclick="event.stopPropagation();tab(this)"><i class="ti ti-paperclip"></i><span class="tip">Docs</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-lbl">Lead · due today · click to flip</div>
+  </div>
+
+  <!-- ── ACTIVE CARD — upcoming (right dot active) ── -->
+  <div class="card-col">
+    <div class="flip-wrap active" onclick="flip(this)">
+      <div class="flip-inner">
+        <div class="face front">
+          <div class="tl">
+            <div class="tld"></div>
+            <div class="tld"></div>
+            <div class="tld upcoming"></div>
+          </div>
+          <div class="heat">🔥🔥</div>
+          <button class="xbtn" onclick="event.stopPropagation();flip(this.closest('.flip-wrap'))"><i class="ti ti-arrows-maximize"></i></button>
+          <div class="fcontent">
+            <div class="dname">Sedge Consulting BF</div>
+            <div class="seller"><div class="sdot" style="background:rgba(46,125,82,0.7)"></div><div class="sname">Lucy — confirmed</div></div>
+            <div class="facts">BF<span class="sep">·</span>Gold Doré<span class="sep">·</span>500kg/mo</div>
+            <div class="fsp"></div>
+          </div>
+          <div class="ficons">
+            <div class="ib on" onclick="event.stopPropagation()"><i class="ti ti-info-circle"></i><span class="tip">Info</span></div>
+            <div class="ib" onclick="event.stopPropagation()"><i class="ti ti-activity"></i><span class="tip">Activity</span></div>
+            <div class="ib" onclick="event.stopPropagation()"><i class="ti ti-check"></i><span class="tip">Tasks</span></div>
+            <div class="ib" onclick="event.stopPropagation()"><i class="ti ti-paperclip"></i><span class="tip">Docs</span></div>
+          </div>
+        </div>
+        <div class="face back">
+          <div class="bhdr">
+            <div class="bhdr-top"><div class="bname">Sedge Consulting BF</div><button class="bclose" onclick="event.stopPropagation();unflip(this)">×</button></div>
+            <div class="bfacts">BF<span class="sep">·</span>Gold Doré<span class="sep">·</span>500kg/mo</div>
+          </div>
+          <div class="bdiv"></div>
+          <div class="bbody">
+            <div class="bpanel on" data-p="info">
+              <div class="psec">Seller matching</div>
+              <div class="srow2"><div class="sd2" style="background:#2e7d52"></div><div class="sn2">Lucy (confirmed)</div><span class="stag p">Primary</span></div>
+              <div class="bnote">Contract review due in 3 days</div>
+            </div>
+            <div class="bpanel" data-p="activity"><div class="psec">Activity</div><div class="aitem"><div class="adot" style="background:#2e7d52"></div><div class="atext">Lucy confirmed terms</div><div class="atime">1d ago</div></div></div>
+            <div class="bpanel" data-p="tasks"><div class="psec">Tasks</div><div class="trow"><div class="tcheck"></div><div class="ttext">Contract review</div><div class="tdue up">In 3 days</div></div></div>
+            <div class="bpanel" data-p="docs"><div class="psec">Documents</div><div class="drow"><i class="ti ti-file" style="font-size:13px;color:rgba(80,60,10,0.4)"></i><div class="dname2">Draft contract v2</div><div class="ddate">13 Jul</div></div></div>
+          </div>
+          <div class="bicons">
+            <div class="bib on" data-t="info" onclick="event.stopPropagation();tab(this)"><i class="ti ti-info-circle"></i><span class="tip">Info</span></div>
+            <div class="bib" data-t="activity" onclick="event.stopPropagation();tab(this)"><i class="ti ti-activity"></i><span class="tip">Activity</span></div>
+            <div class="bib" data-t="tasks" onclick="event.stopPropagation();tab(this)"><i class="ti ti-check"></i><span class="tip">Tasks</span></div>
+            <div class="bib" data-t="docs" onclick="event.stopPropagation();tab(this)"><i class="ti ti-paperclip"></i><span class="tip">Docs</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-lbl">Active · upcoming · click to flip</div>
+  </div>
+
+  <!-- ── ACTIVE CARD — nothing pending (all grey) ── -->
+  <div class="card-col">
+    <div class="flip-wrap active" onclick="flip(this)">
+      <div class="flip-inner">
+        <div class="face front">
+          <div class="tl">
+            <div class="tld"></div>
+            <div class="tld"></div>
+            <div class="tld"></div>
+          </div>
+          <div class="heat">🔥</div>
+          <button class="xbtn" onclick="event.stopPropagation();flip(this.closest('.flip-wrap'))"><i class="ti ti-arrows-maximize"></i></button>
+          <div class="fcontent">
+            <div class="dname">John Doe — SBLC</div>
+            <div class="seller"><div class="sdot" style="background:rgba(46,125,82,0.65)"></div><div class="sname">Primary confirmed</div></div>
+            <div class="facts">Escrow<span class="sep">·</span>Gold Doré<span class="sep">·</span>100 kg</div>
+            <div class="fsp"></div>
+          </div>
+          <div class="ficons">
+            <div class="ib on" onclick="event.stopPropagation()"><i class="ti ti-info-circle"></i><span class="tip">Info</span></div>
+            <div class="ib" onclick="event.stopPropagation()"><i class="ti ti-activity"></i><span class="tip">Activity</span></div>
+            <div class="ib" onclick="event.stopPropagation()"><i class="ti ti-check"></i><span class="tip">Tasks</span></div>
+            <div class="ib" onclick="event.stopPropagation()"><i class="ti ti-paperclip"></i><span class="tip">Docs</span></div>
+          </div>
+        </div>
+        <div class="face back">
+          <div class="bhdr">
+            <div class="bhdr-top"><div class="bname">John Doe — SBLC</div><button class="bclose" onclick="event.stopPropagation();unflip(this)">×</button></div>
+            <div class="bfacts">Escrow<span class="sep">·</span>Gold Doré<span class="sep">·</span>100 kg</div>
+          </div>
+          <div class="bdiv"></div>
+          <div class="bbody">
+            <div class="bpanel on" data-p="info"><div class="psec">Seller matching</div><div class="srow2"><div class="sd2" style="background:#2e7d52"></div><div class="sn2">Primary confirmed</div><span class="stag p">Primary</span></div><div class="bnote">Docs under review · no tasks pending</div></div>
+            <div class="bpanel" data-p="activity"><div class="psec">Activity</div><div class="aitem"><div class="adot" style="background:#c45c00"></div><div class="atext">Deal created</div><div class="atime">5d ago</div></div></div>
+            <div class="bpanel" data-p="tasks"><div class="psec">Tasks</div><div class="bnote" style="margin:0;border:none;padding:0">No tasks pending</div></div>
+            <div class="bpanel" data-p="docs"><div class="psec">Documents</div><div class="drow"><i class="ti ti-file" style="font-size:13px;color:rgba(80,60,10,0.4)"></i><div class="dname2">SBLC draft</div><div class="ddate">10 Jul</div></div></div>
+          </div>
+          <div class="bicons">
+            <div class="bib on" data-t="info" onclick="event.stopPropagation();tab(this)"><i class="ti ti-info-circle"></i><span class="tip">Info</span></div>
+            <div class="bib" data-t="activity" onclick="event.stopPropagation();tab(this)"><i class="ti ti-activity"></i><span class="tip">Activity</span></div>
+            <div class="bib" data-t="tasks" onclick="event.stopPropagation();tab(this)"><i class="ti ti-check"></i><span class="tip">Tasks</span></div>
+            <div class="bib" data-t="docs" onclick="event.stopPropagation();tab(this)"><i class="ti ti-paperclip"></i><span class="tip">Docs</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-lbl">Active · nothing pending · click to flip</div>
+  </div>
+
+  <!-- ── CONTACT CARD ── -->
+  <div class="card-col">
+    <div class="flip-wrap contact" onclick="flip(this)">
+      <div class="flip-inner">
+        <div class="face front">
+          <div class="tl">
+            <div class="tld"></div>
+            <div class="tld"></div>
+            <div class="tld"></div>
+          </div>
+          <button class="xbtn" onclick="event.stopPropagation();flip(this.closest('.flip-wrap'))"><i class="ti ti-arrows-maximize"></i></button>
+          <div class="fcontent" style="padding-top:16px">
+            <div class="av">KTI</div>
+            <div class="dname" style="padding-left:0;font-size:13px">KTI Industries</div>
+            <div class="role">Primary seller · Copper</div>
+            <div class="fsp"></div>
+          </div>
+          <div class="ficons">
+            <div class="ib on" onclick="event.stopPropagation()"><i class="ti ti-info-circle"></i><span class="tip">Info</span></div>
+            <div class="ib" onclick="event.stopPropagation()"><i class="ti ti-activity"></i><span class="tip">Activity</span></div>
+            <div class="ib" onclick="event.stopPropagation()"><i class="ti ti-briefcase"></i><span class="tip">Deals</span></div>
+            <div class="ib" onclick="event.stopPropagation()"><i class="ti ti-paperclip"></i><span class="tip">Docs</span></div>
+          </div>
+        </div>
+        <div class="face back">
+          <div class="bhdr">
+            <div class="bhdr-top"><div class="bname">KTI Industries</div><button class="bclose" onclick="event.stopPropagation();unflip(this)">×</button></div>
+            <div class="bfacts">Primary seller · Copper · Zambia</div>
+          </div>
+          <div class="bdiv" style="background:linear-gradient(90deg,rgba(80,100,200,0) 0%,rgba(80,100,200,0.2) 30%,rgba(80,100,200,0.2) 70%,rgba(80,100,200,0) 100%)"></div>
+          <div class="bbody">
+            <div class="bpanel on" data-p="info"><div class="psec">Contact info</div><div class="srow2"><div class="sn2">3 active deals</div></div><div class="srow2"><div class="sn2">Last contact: 2 days ago</div></div><div class="bnote">Copper specialist · Zambia direct</div></div>
+            <div class="bpanel" data-p="activity"><div class="psec">Activity</div><div class="aitem"><div class="adot" style="background:#4060cc"></div><div class="atext">Call — confirmed Q3 availability</div><div class="atime">2d ago</div></div></div>
+            <div class="bpanel" data-p="deals"><div class="psec">Deals</div><div class="srow2"><div class="sn2">CHIWEMPALA Copper</div><span class="stag p">Primary</span></div></div>
+            <div class="bpanel" data-p="docs"><div class="psec">Documents</div><div class="bnote" style="margin:0;border:none;padding:0">Mandate on file</div></div>
+          </div>
+          <div class="bicons">
+            <div class="bib on" data-t="info" onclick="event.stopPropagation();tab(this)"><i class="ti ti-info-circle"></i><span class="tip">Info</span></div>
+            <div class="bib" data-t="activity" onclick="event.stopPropagation();tab(this)"><i class="ti ti-activity"></i><span class="tip">Activity</span></div>
+            <div class="bib" data-t="deals" onclick="event.stopPropagation();tab(this)"><i class="ti ti-briefcase"></i><span class="tip">Deals</span></div>
+            <div class="bib" data-t="docs" onclick="event.stopPropagation();tab(this)"><i class="ti ti-paperclip"></i><span class="tip">Docs</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-lbl">Contact · click to flip</div>
+  </div>
+
+</div>
+
+<!-- Pill launcher -->
+<div class="pill-wrap" id="pw">
+  <div class="modes" id="modes">
+    <div class="mitem"><div class="mlbl">Today</div><div class="mcircle"><i class="ti ti-sun"></i></div></div>
+    <div class="mitem"><div class="mlbl">Registry</div><div class="mcircle"><i class="ti ti-users"></i></div></div>
+    <div class="mitem"><div class="mlbl">Stats</div><div class="mcircle"><i class="ti ti-chart-bar"></i></div></div>
+    <div class="mitem"><div class="mlbl">New</div><div class="mcircle"><i class="ti ti-plus"></i></div></div>
+  </div>
+  <div class="pill" onclick="tglPill()">
+    <div class="pav">KO</div>
+    <div class="ptxt"><div class="pname">Ken O.</div><div class="phint">My workspace</div></div>
+    <i class="ti ti-chevron-up pchev"></i>
+  </div>
+</div>
+
+<script>
+function flip(w) { w.querySelector('.flip-inner').classList.toggle('flipped'); }
+function unflip(b) { b.closest('.flip-inner').classList.remove('flipped'); }
+function tab(btn) {
+  const w = btn.closest('.flip-wrap');
+  const t = btn.dataset.t;
+  w.querySelectorAll('.bib').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  w.querySelectorAll('.bpanel').forEach(p => p.classList.remove('on'));
+  w.querySelector('[data-p="' + t + '"]').classList.add('on');
+}
+let po = false;
+function tglPill() {
+  po = !po;
+  document.getElementById('modes').classList.toggle('open', po);
+  document.getElementById('pw').classList.toggle('open', po);
+}
+</script>
+</body>
+</html>

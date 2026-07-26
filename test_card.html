@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Card</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400&display=swap" rel="stylesheet">
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    background: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card {
+    width: 200px;
+    height: 280px;
+    border-radius: 16px;
+    background: linear-gradient(180deg, #fdfdf9 0%, #f4e9c0 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(180deg, #fffef7 0%, #ecda93 100%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.14);
+  }
+
+  .card:hover::before {
+    opacity: 1;
+  }
+
+  .card-dot {
+    position: absolute;
+    left: 14px;
+    bottom: 14px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #c45c00;
+  }
+
+  .card-name {
+    position: relative;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 400;
+    font-size: 20px;
+    color: #3a2f10;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <span class="card-name">Test Card</span>
+    <span class="card-dot"></span>
+  </div>
+</body>
+</html>

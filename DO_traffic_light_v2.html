@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DealOrchestra — Traffic Light v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #f8f7f4;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  padding: 32px 28px 60px;
+}
+
+.sec {
+  font-size: 10px;
+  font-weight: 600;
+  color: #9a8858;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(155,140,80,0.15);
+}
+
+/* ── TRAFFIC LIGHT — THREE FIXED POSITIONS, ONE DOT ACTIVE ──
+   Left   = overdue  (red)
+   Middle = today    (amber)
+   Right  = upcoming (green)
+   Only ONE dot is active at a time.
+   Inactive positions show as grey placeholders.
+   Position = signal. Colour = confirmation. */
+.tl {
+  position: absolute;
+  top: 10px;
+  left: 11px;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  z-index: 5;
+}
+/* Base dot — grey placeholder */
+.tld {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: rgba(80,60,20,0.13);
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+/* Active states — one at a time */
+.tld.red   { background: #c0392b; box-shadow: 0 0 6px rgba(192,57,43,0.6); }
+.tld.amber { background: #b87a18; box-shadow: 0 0 6px rgba(184,122,24,0.5); }
+.tld.green { background: #2e7d52; box-shadow: 0 0 6px rgba(46,125,82,0.5); }
+
+/* ── CARD GRADIENTS ── */
+.w {
+  background: linear-gradient(175deg,
+    rgba(255,255,255,0.18)  0%,
+    rgba(255,255,255,0.32) 18%,
+    rgba(255,252,240,0.55) 38%,
+    rgba(252,240,195,0.78) 62%,
+    rgba(245,224,140,0.92) 82%,
+    rgba(236,208,100,0.97) 100%);
+  border: 1px solid rgba(255,255,255,0.62);
+  box-shadow: inset 0 1.5px 0 rgba(255,255,255,0.9), 0 3px 14px rgba(160,130,50,0.12);
+}
+.a {
+  background: linear-gradient(175deg,
+    rgba(255,255,255,0.18)  0%,
+    rgba(255,255,255,0.32) 18%,
+    rgba(242,255,248,0.55) 38%,
+    rgba(210,242,224,0.78) 62%,
+    rgba(158,228,192,0.92) 82%,
+    rgba(118,210,162,0.97) 100%);
+  border: 1px solid rgba(255,255,255,0.62);
+  box-shadow: inset 0 1.5px 0 rgba(255,255,255,0.9), 0 3px 14px rgba(46,125,82,0.1);
+}
+
+/* ── FAN STACK ── */
+.fan-section {
+  display: flex;
+  gap: 28px;
+  margin-bottom: 52px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.fan-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.fan-stack {
+  position: relative;
+  width: 162px;
+  height: 190px;
+}
+.fc {
+  position: absolute;
+  left: 0; right: 0;
+  height: 108px;
+  border-radius: 14px;
+  padding: 9px 10px 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+}
+.fc-name {
+  font-size: 10.5px;
+  font-weight: 400;
+  color: rgba(20,14,4,0.88);
+  line-height: 1.22;
+  padding-left: 36px;
+  padding-right: 20px;
+  margin-bottom: 3px;
+}
+.fc-meta {
+  font-size: 8px;
+  font-weight: 300;
+  color: rgba(40,28,8,0.4);
+  padding-left: 36px;
+}
+.fc-sp { flex: 1; }
+.fc-foot { display: flex; align-items: center; gap: 4px; }
+.fc-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.fc-lbl { font-size: 8px; font-weight: 400; color: rgba(60,45,10,0.5); }
+.fc-heat {
+  font-size: 9px;
+  letter-spacing: -1px;
+  position: absolute;
+  top: 10px; right: 9px;
+  opacity: 0.85;
+}
+.col-lbl {
+  font-size: 9px;
+  font-weight: 500;
+  color: #aaa;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+/* ── KEY ── */
+.key-card {
+  background: rgba(255,255,255,0.72);
+  border: 1px solid rgba(155,140,80,0.18);
+  border-radius: 12px;
+  padding: 16px 18px;
+  width: 220px;
+  align-self: flex-start;
+  margin-top: 4px;
+}
+.key-title {
+  font-size: 9px;
+  font-weight: 700;
+  color: #9a8858;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.key-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 12px;
+}
+.key-dots {
+  display: flex;
+  gap: 5px;
+  margin-right: 12px;
+}
+.key-d {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(80,60,20,0.13);
+}
+.key-d.on.r { background: #c0392b; box-shadow: 0 0 5px rgba(192,57,43,0.55); }
+.key-d.on.am { background: #b87a18; box-shadow: 0 0 5px rgba(184,122,24,0.45); }
+.key-d.on.g { background: #2e7d52; box-shadow: 0 0 5px rgba(46,125,82,0.45); }
+.key-label { font-size: 10px; font-weight: 400; color: rgba(20,14,4,0.75); }
+.key-pos {
+  font-size: 8.5px;
+  font-weight: 300;
+  color: rgba(80,60,10,0.45);
+  margin-top: 1px;
+}
+.key-note {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(155,140,80,0.12);
+  font-size: 9px;
+  font-weight: 300;
+  color: #9a8858;
+  line-height: 1.6;
+}
+
+/* ── SPREAD VIEW ── */
+.spread-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.sc {
+  aspect-ratio: 5 / 7;
+  border-radius: 16px;
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 10px 9px;
+  transition: transform 0.18s cubic-bezier(0.34,1.15,0.64,1);
+}
+.sc:hover { transform: translateY(-5px); }
+.sc-name {
+  font-size: 10px;
+  font-weight: 400;
+  color: rgba(20,14,4,0.88);
+  line-height: 1.22;
+  padding-left: 32px;
+  padding-right: 16px;
+  margin-bottom: 3px;
+}
+.sc-meta {
+  font-size: 7.5px;
+  font-weight: 300;
+  color: rgba(40,28,8,0.38);
+  padding-left: 32px;
+}
+.sc-sp { flex: 1; }
+.sc-heat {
+  font-size: 9px;
+  letter-spacing: -1px;
+  position: absolute;
+  top: 9px; right: 8px;
+  opacity: 0.85;
+}
+.sc-foot { display: flex; align-items: center; gap: 3px; margin-top: 5px; }
+.sc-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.sc-lbl { font-size: 7.5px; font-weight: 400; color: rgba(60,45,10,0.45); }
+
+.note {
+  font-size: 9.5px;
+  color: #9a8858;
+  font-style: italic;
+  text-align: center;
+  margin-top: 10px;
+}
+</style>
+</head>
+<body>
+
+<!-- ── FAN STACK SECTION ── -->
+<div class="sec">Fan stack — three fixed positions · one dot active · position = signal</div>
+
+<div class="fan-section">
+
+  <!-- OVERDUE card — left dot red -->
+  <div class="fan-col">
+    <div class="fan-stack">
+      <div class="fc w" style="top:56px;z-index:1;opacity:0.5">
+        <div class="tl">
+          <div class="tld"></div>
+          <div class="tld"></div>
+          <div class="tld"></div>
+        </div>
+        <div class="fc-heat"></div>
+        <div class="fc-name">Andrew Zambia</div>
+        <div class="fc-meta">Manchester</div>
+        <div class="fc-sp"></div>
+        <div class="fc-foot"><div class="fc-dot" style="background:#b0a888"></div><span class="fc-lbl">No seller</span></div>
+      </div>
+      <div class="fc w" style="top:28px;z-index:2;opacity:0.75">
+        <div class="tl">
+          <div class="tld"></div>
+          <div class="tld"></div>
+          <div class="tld green"></div>
+        </div>
+        <div class="fc-heat">🔥</div>
+        <div class="fc-name">Ricardo DLC</div>
+        <div class="fc-meta">Dubai · 1000 MT</div>
+        <div class="fc-sp"></div>
+        <div class="fc-foot"><div class="fc-dot" style="background:#b87a18"></div><span class="fc-lbl">Candidate</span></div>
+      </div>
+      <!-- TOP CARD: overdue — left dot active -->
+      <div class="fc w" style="top:0px;z-index:3">
+        <div class="tl">
+          <div class="tld red"></div>
+          <div class="tld"></div>
+          <div class="tld"></div>
+        </div>
+        <div class="fc-heat">🔥🔥🔥</div>
+        <div class="fc-name">CHIWEMPALA Copper</div>
+        <div class="fc-meta">Zambia · Cash & Carry</div>
+        <div class="fc-sp"></div>
+        <div class="fc-foot"><div class="fc-dot" style="background:#2e7d52"></div><span class="fc-lbl">KTI primary</span></div>
+      </div>
+    </div>
+    <div class="col-lbl">● ○ ○ overdue</div>
+  </div>
+
+  <!-- DUE TODAY card — middle dot amber -->
+  <div class="fan-col">
+    <div class="fan-stack">
+      <div class="fc w" style="top:56px;z-index:1;opacity:0.5">
+        <div class="tl">
+          <div class="tld"></div>
+          <div class="tld"></div>
+          <div class="tld"></div>
+        </div>
+        <div class="fc-heat"></div>
+        <div class="fc-name">Alisha — Lightmoon</div>
+        <div class="fc-meta">direct</div>
+        <div class="fc-sp"></div>
+        <div class="fc-foot"><div class="fc-dot" style="background:#b0a888"></div><span class="fc-lbl">New</span></div>
+      </div>
+      <div class="fc w" style="top:28px;z-index:2;opacity:0.75">
+        <div class="tl">
+          <div class="tld"></div>
+          <div class="tld"></div>
+          <div class="tld green"></div>
+        </div>
+        <div class="fc-heat">🔥</div>
+        <div class="fc-name">Debra & Yonah</div>
+        <div class="fc-meta">Dubai · Gold Doré</div>
+        <div class="fc-sp"></div>
+        <div class="fc-foot"><div class="fc-dot" style="background:#b0a888"></div><span class="fc-lbl">No seller</span></div>
+      </div>
+      <!-- TOP: due today — middle dot active -->
+      <div class="fc w" style="top:0px;z-index:3">
+        <div class="tl">
+          <div class="tld"></div>
+          <div class="tld amber"></div>
+          <div class="tld"></div>
+        </div>
+        <div class="fc-heat">🔥🔥</div>
+        <div class="fc-name">Accra Gold CIF</div>
+        <div class="fc-meta">Zurich · Gold Doré</div>
+        <div class="fc-sp"></div>
+        <div class="fc-foot"><div class="fc-dot" style="background:#2e7d52"></div><span class="fc-lbl">KTI primary</span></div>
+      </div>
+    </div>
+    <div class="col-lbl">○ ● ○ due today</div>
+  </div>
+
+  <!-- UPCOMING card — right dot green -->
+  <div class="fan-col">
+    <div class="fan-stack">
+      <div class="fc a" style="top:56px;z-index:1;opacity:0.5">
+        <div class="tl">
+          <div class="tld"></div>
+          <div class="tld"></div>
+          <div class="tld"></div>
+        </div>
+        <div class="fc-heat"></div>
+        <div class="fc-name">John Doe SBLC</div>
+        <div class="fc-meta">100 kg</div>
+        <div class="fc-sp"></div>
+        <div class="fc-foot"><div class="fc-dot" style="background:#2e7d52"></div><span class="fc-lbl">Active</span></div>
+      </div>
+      <div class="fc a" style="top:28px;z-index:2;opacity:0.75">
+        <div class="tl">
+          <div class="tld"></div>
+          <div class="tld"></div>
+          <div class="tld"></div>
+        </div>
+        <div class="fc-heat">🔥</div>
+        <div class="fc-name">Dr Omar Escrow</div>
+        <div class="fc-meta">US · Gold Doré</div>
+        <div class="fc-sp"></div>
+        <div class="fc-foot"><div class="fc-dot" style="background:#b87a18"></div><span class="fc-lbl">Pending</span></div>
+      </div>
+      <!-- TOP: upcoming — right dot active -->
+      <div class="fc a" style="top:0px;z-index:3">
+        <div class="tl">
+          <div class="tld"></div>
+          <div class="tld"></div>
+          <div class="tld green"></div>
+        </div>
+        <div class="fc-heat">🔥🔥</div>
+        <div class="fc-name">Sedge Consulting BF</div>
+        <div class="fc-meta">500kg/mo · direct</div>
+        <div class="fc-sp"></div>
+        <div class="fc-foot"><div class="fc-dot" style="background:#2e7d52"></div><span class="fc-lbl">Lucy confirmed</span></div>
+      </div>
+    </div>
+    <div class="col-lbl">○ ○ ● upcoming</div>
+  </div>
+
+  <!-- NO TASKS card — all grey -->
+  <div class="fan-col">
+    <div class="fan-stack">
+      <div class="fc w" style="top:56px;z-index:1;opacity:0.5">
+        <div class="tl">
+          <div class="tld"></div>
+          <div class="tld"></div>
+          <div class="tld"></div>
+        </div>
+        <div class="fc-name">Mikael — DLC</div>
+        <div class="fc-meta">500 MT</div>
+        <div class="fc-sp"></div>
+        <div class="fc-foot"><div class="fc-dot" style="background:#b0a888"></div><span class="fc-lbl">No seller</span></div>
+      </div>
+      <div class="fc w" style="top:28px;z-index:2;opacity:0.75">
+        <div class="tl">
+          <div class="tld"></div>
+          <div class="tld"></div>
+          <div class="tld"></div>
+        </div>
+        <div class="fc-name">Multi Buyer Gold</div>
+        <div class="fc-meta">Dubai · direct</div>
+        <div class="fc-sp"></div>
+        <div class="fc-foot"><div class="fc-dot" style="background:#b0a888"></div><span class="fc-lbl">No seller</span></div>
+      </div>
+      <div class="fc w" style="top:0px;z-index:3">
+        <div class="tl">
+          <div class="tld"></div>
+          <div class="tld"></div>
+          <div class="tld"></div>
+        </div>
+        <div class="fc-name">Alisha — Lightmoon</div>
+        <div class="fc-meta">direct</div>
+        <div class="fc-sp"></div>
+        <div class="fc-foot"><div class="fc-dot" style="background:#b0a888"></div><span class="fc-lbl">New</span></div>
+      </div>
+    </div>
+    <div class="col-lbl">○ ○ ○ nothing pending</div>
+  </div>
+
+  <!-- Key -->
+  <div class="fan-col" style="justify-content:flex-start;padding-top:0">
+    <div class="key-card">
+      <div class="key-title">Three positions · one dot</div>
+
+      <div class="key-row">
+        <div class="key-dots">
+          <div class="key-d on r"></div>
+          <div class="key-d"></div>
+          <div class="key-d"></div>
+        </div>
+        <div>
+          <div class="key-label">Left — overdue</div>
+          <div class="key-pos">Something is already late</div>
+        </div>
+      </div>
+
+      <div class="key-row">
+        <div class="key-dots">
+          <div class="key-d"></div>
+          <div class="key-d on am"></div>
+          <div class="key-d"></div>
+        </div>
+        <div>
+          <div class="key-label">Middle — due today</div>
+          <div class="key-pos">Needs attention today</div>
+        </div>
+      </div>
+
+      <div class="key-row">
+        <div class="key-dots">
+          <div class="key-d"></div>
+          <div class="key-d"></div>
+          <div class="key-d on g"></div>
+        </div>
+        <div>
+          <div class="key-label">Right — upcoming</div>
+          <div class="key-pos">Something on the horizon</div>
+        </div>
+      </div>
+
+      <div class="key-row" style="margin-bottom:0">
+        <div class="key-dots">
+          <div class="key-d"></div>
+          <div class="key-d"></div>
+          <div class="key-d"></div>
+        </div>
+        <div>
+          <div class="key-label">All grey — clear</div>
+          <div class="key-pos">Nothing pending</div>
+        </div>
+      </div>
+
+      <div class="key-note">
+        One dot active at a time. Position is the signal — colour confirms it. Muscle memory: left = problem, middle = today, right = coming. Works on honey (Lead) and mint (Active) cards alike.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── SPREAD VIEW ── -->
+<div class="sec">Spread view — all states visible · sorted by urgency left to right</div>
+
+<div class="spread-grid">
+
+  <!-- Overdue -->
+  <div class="sc w">
+    <div class="tl">
+      <div class="tld red"></div>
+      <div class="tld"></div>
+      <div class="tld"></div>
+    </div>
+    <div class="sc-heat">🔥🔥🔥</div>
+    <div class="sc-name">CHIWEMPALA Copper</div>
+    <div class="sc-meta">Zambia · Cash & Carry</div>
+    <div class="sc-sp"></div>
+    <div class="sc-foot"><div class="sc-dot" style="background:#2e7d52"></div><span class="sc-lbl">KTI primary</span></div>
+  </div>
+
+  <!-- Overdue active card -->
+  <div class="sc a">
+    <div class="tl">
+      <div class="tld red"></div>
+      <div class="tld"></div>
+      <div class="tld"></div>
+    </div>
+    <div class="sc-heat">🔥🔥🔥</div>
+    <div class="sc-name">Collins KTI</div>
+    <div class="sc-meta">Copper · direct</div>
+    <div class="sc-sp"></div>
+    <div class="sc-foot"><div class="sc-dot" style="background:#2e7d52"></div><span class="sc-lbl">KTI primary</span></div>
+  </div>
+
+  <!-- Due today -->
+  <div class="sc w">
+    <div class="tl">
+      <div class="tld"></div>
+      <div class="tld amber"></div>
+      <div class="tld"></div>
+    </div>
+    <div class="sc-heat">🔥🔥</div>
+    <div class="sc-name">Accra Gold CIF</div>
+    <div class="sc-meta">Zurich · Gold Doré</div>
+    <div class="sc-sp"></div>
+    <div class="sc-foot"><div class="sc-dot" style="background:#2e7d52"></div><span class="sc-lbl">KTI primary</span></div>
+  </div>
+
+  <!-- Due today active -->
+  <div class="sc a">
+    <div class="tl">
+      <div class="tld"></div>
+      <div class="tld amber"></div>
+      <div class="tld"></div>
+    </div>
+    <div class="sc-heat">🔥🔥</div>
+    <div class="sc-name">Sedge Consulting BF</div>
+    <div class="sc-meta">500kg/mo · direct</div>
+    <div class="sc-sp"></div>
+    <div class="sc-foot"><div class="sc-dot" style="background:#2e7d52"></div><span class="sc-lbl">Lucy confirmed</span></div>
+  </div>
+
+  <!-- Upcoming -->
+  <div class="sc a">
+    <div class="tl">
+      <div class="tld"></div>
+      <div class="tld"></div>
+      <div class="tld green"></div>
+    </div>
+    <div class="sc-heat">🔥</div>
+    <div class="sc-name">Dr Omar — Escrow</div>
+    <div class="sc-meta">US · Gold Doré</div>
+    <div class="sc-sp"></div>
+    <div class="sc-foot"><div class="sc-dot" style="background:#b87a18"></div><span class="sc-lbl">Pending</span></div>
+  </div>
+
+</div>
+
+<div class="spread-grid">
+
+  <!-- Upcoming lead -->
+  <div class="sc w">
+    <div class="tl">
+      <div class="tld"></div>
+      <div class="tld"></div>
+      <div class="tld green"></div>
+    </div>
+    <div class="sc-heat">🔥</div>
+    <div class="sc-name">Ricardo DLC</div>
+    <div class="sc-meta">Dubai · 1000 MT</div>
+    <div class="sc-sp"></div>
+    <div class="sc-foot"><div class="sc-dot" style="background:#b87a18"></div><span class="sc-lbl">Candidate</span></div>
+  </div>
+
+  <!-- Nothing pending -->
+  <div class="sc w">
+    <div class="tl">
+      <div class="tld"></div>
+      <div class="tld"></div>
+      <div class="tld"></div>
+    </div>
+    <div class="sc-heat">🔥</div>
+    <div class="sc-name">Mikael — DLC</div>
+    <div class="sc-meta">500 MT · direct</div>
+    <div class="sc-sp"></div>
+    <div class="sc-foot"><div class="sc-dot" style="background:#b0a888"></div><span class="sc-lbl">No seller</span></div>
+  </div>
+
+  <!-- Nothing pending -->
+  <div class="sc w">
+    <div class="tl">
+      <div class="tld"></div>
+      <div class="tld"></div>
+      <div class="tld"></div>
+    </div>
+    <div class="sc-name">Alisha — Lightmoon</div>
+    <div class="sc-meta">direct</div>
+    <div class="sc-sp"></div>
+    <div class="sc-foot"><div class="sc-dot" style="background:#b0a888"></div><span class="sc-lbl">New</span></div>
+  </div>
+
+  <div style="grid-column:span 2;display:flex;align-items:center;justify-content:center">
+    <div style="text-align:center;font-size:10px;font-weight:300;color:rgba(20,14,4,0.35);line-height:1.7">
+      Three grey dots — nothing pending.<br>Quiet at the end of the board.
+    </div>
+  </div>
+
+</div>
+
+<div class="note">Left = overdue · Middle = today · Right = upcoming · All grey = clear. One dot. Always the same position. Muscle memory builds immediately.</div>
+
+</body>
+</html>

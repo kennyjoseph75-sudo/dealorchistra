@@ -56,9 +56,7 @@
 Add master spec, card reference, traffic light reference, Kimi briefing, session log — complete workflow setup
 ```
 
-**COMMITTED: NO**
-
-*After Kimi pushes, change the line above to COMMITTED: YES, then push SESSION_LOG.md*
+**COMMITTED: YES** (ed37971)
 
 ---
 

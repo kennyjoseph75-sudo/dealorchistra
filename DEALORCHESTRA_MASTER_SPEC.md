@@ -483,6 +483,30 @@ Admin sets organisation default. Each user can override for themselves. Stored i
 
 **Kimi VS Code** — execution. Receives instructions from Kimi Web. Writes the actual code. Commits to repo.
 
+### Session protocol — mandatory at start and end of every Claude session
+
+**Every session START — upload these two files:**
+1. `DEALORCHESTRA_MASTER_SPEC.md` — current decisions
+2. `SESSION_LOG.md` — Claude reads the last entry first
+
+Claude will:
+- Check whether the last session was committed (COMMITTED: YES/NO)
+- If COMMITTED: NO — flag it and ask Ken to commit via Kimi before proceeding
+- Confirm master spec version matches the log
+- Only then proceed with session work
+
+**Every session END — Claude will automatically:**
+1. Write a new entry in SESSION_LOG.md with timestamp, decisions, files changed
+2. Set COMMITTED: NO
+3. Give the exact Kimi commit message to use
+4. Remind Ken to change COMMITTED: NO → YES after Kimi pushes
+5. Remind Ken to push SESSION_LOG.md as part of the commit
+
+**After Kimi commits and pushes:**
+1. Open SESSION_LOG.md
+2. Change `COMMITTED: NO` to `COMMITTED: YES`
+3. Save and push: `git add SESSION_LOG.md && git commit -m "Mark session [date] committed" && git push`
+
 ### The single source of truth
 This document (`DEALORCHESTRA_MASTER_SPEC.md`) is the shared brain. It lives in the Git repo alongside the code.
 

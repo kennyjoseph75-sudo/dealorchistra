@@ -27,6 +27,31 @@
 
 ---
 
+### Session: 10 August 2026
+**Time:** Morning session
+**Master spec version:** 1.0
+**Claude session type:** Session start check + workflow orientation
+
+**Decisions made this session:**
+- No new design or architecture decisions made
+- Session start protocol executed correctly for first time — confirmed working
+- Discrepancy investigated: DO_MATCHING_VISUALISATION_PROPOSAL_01AUG2026.html exists in project knowledge but has no traceable chat session and is marked PROPOSAL NOT DECISION — safely ignorable, nothing in it is locked architecture
+- Confirmed repo is clean: all files dated 26 July or earlier, SESSION_LOG.md correctly shows last session committed
+- Workflow confirmed for next session: v9 bug fixes and feature requests first, then UI design pass, then v10 build
+- Bug list source confirmed: Ken's own daily use notes, mix of bugs and small feature requests
+
+**Files created/updated this session:**
+- SESSION_LOG.md — this entry added
+
+**Kimi commit message to use:**
+Update session log — 10 Aug session start check, no code changes
+
+**COMMITTED: NO**
+
+*After Kimi pushes, change the line above to COMMITTED: YES, then push SESSION_LOG.md*
+
+---
+
 ### Session: 26 July 2026
 **Time:** Morning/afternoon session (extended)
 **Master spec version:** 1.0
@@ -35,7 +60,7 @@
 **Decisions made this session:**
 - Traffic light urgency dot system locked: three fixed positions (left=overdue/red, middle=today/amber, right=upcoming/green), one dot active at a time, all grey = nothing pending
 - Two card types confirmed (not three): Lead (honey) and Active (mint). Potential collapsed into Lead.
-- Board sort and view controls defined: Sort (Urgency/Heat/Type/Recent) × Layout (Stack/Spread) × Filter (Lead/Active/Both)
+- Board sort and view controls defined: Sort (Urgency/Heat/Type/Recent) x Layout (Stack/Spread) x Filter (Lead/Active/Both)
 - Animation level system added to roadmap: Level 0 (off), Level 1 (default/subtle), Level 2 (expressive), Level 3 (full physical). Design in v10, build in v11.
 - Workflow consolidated: Claude (thinking) + Kimi VS Code (building). Kimi Web cut from workflow.
 - Single master document established: DEALORCHESTRA_MASTER_SPEC.md v1.0
@@ -45,34 +70,21 @@
 - Heat emoji position locked: top-right corner, absolute positioned. Traffic light dots: top-left corner. These never swap.
 
 **Files created/updated this session:**
-- `DEALORCHESTRA_MASTER_SPEC.md` — created v1.0
-- `DO_CARD_REFERENCE_v1.html` — created with traffic light dots, corrected heat/dot positions
-- `DO_traffic_light_v2.html` — created
-- `DO_KIMI_VSCODE_BRIEFING.md` — created
-- `SESSION_LOG.md` — created (this file)
+- DEALORCHESTRA_MASTER_SPEC.md — created v1.0
+- DO_CARD_REFERENCE_v1.html — created with traffic light dots, corrected heat/dot positions
+- DO_traffic_light_v2.html — created
+- DO_KIMI_VSCODE_BRIEFING.md — created
+- SESSION_LOG.md — created (this file)
 
 **Kimi commit message to use:**
-```
 Add master spec, card reference, traffic light reference, Kimi briefing, session log — complete workflow setup
-```
 
 **COMMITTED: YES** (ed37971)
 
 ---
 
-## How to update this file after committing
-
-1. Find the last entry above
-2. Change `COMMITTED: NO` to `COMMITTED: YES`
-3. Add the actual commit hash from GitHub if you want (optional but useful)
-4. Save the file
-5. Do a final push: `git add SESSION_LOG.md && git commit -m "Mark session 26 Jul committed" && git push`
-
----
-
 ## Blank entry template (Claude fills this in at session end)
 
-```
 ### Session: [DATE]
 **Time:** [TIME / approximate]
 **Master spec version:** [VERSION]
@@ -83,7 +95,7 @@ Add master spec, card reference, traffic light reference, Kimi briefing, session
 - [decision 2]
 
 **Files created/updated this session:**
-- `[filename]` — [what changed]
+- [filename] — [what changed]
 
 **Kimi commit message to use:**
 [exact message]
@@ -91,4 +103,3 @@ Add master spec, card reference, traffic light reference, Kimi briefing, session
 **COMMITTED: NO**
 
 *After Kimi pushes, change the line above to COMMITTED: YES, then push SESSION_LOG.md*
-```
